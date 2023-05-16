@@ -1,0 +1,14 @@
+﻿public class Game
+{
+    
+    internal Piece[,] boardArray = new Piece[8, 8];
+
+    public void Start()
+    {
+        GraphicalBoard.CreateBoard();
+        CameraControl.InitializeCamera();
+
+        Piece pieces = new Piece();
+        pieces.InitializePieces();
+    }
+}
