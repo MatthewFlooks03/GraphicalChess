@@ -1,0 +1,16 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/UserSettings
+/Temp
+/ProjectSettings
+/Packages
+/obj
+/Logs
+/Library
+/Chess.sln
+/Assets
+/Assembly-CSharp.csproj
+/.vsconfig
+/.vs
