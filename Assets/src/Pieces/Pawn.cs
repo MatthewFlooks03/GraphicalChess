@@ -1,24 +1,16 @@
-using System.Runtime.CompilerServices;
-using UnityEngine;
-using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class Pawn : IPiece
 {
-    private char _color;
-    public char color {
-        get 
-        {
-            return _color;
-        }
-    }
+    public char color { get; }
 
     private char _type;
     public char type
     {
         get
         {
-            if(color == 'l')
+            if (color == 'l')
             {
                 return char.ToUpper(_type);
             }
@@ -30,152 +22,87 @@ public class Pawn : IPiece
         }
     }
 
-    private int _value;
-    public int value
-    {
-        get
-        {
-            return _value;
-        }
-    }
+    public int value { get; }
 
-    private GameObject _gameObject;
-    public GameObject gameObject
-    {
-        get
-        {
-            return _gameObject;
-        }
-        set
-        {
-            _gameObject = value;
-        }
-    }
+    public GameObject gameObject { get; set; }
+
+    private IPiece[,] boardArray;
 
 
-    public Pawn(char color)
+    public Pawn(Board board, char color)
     {
-        this._color = color;
-        this._value = 1;
+        this.color = color;
+        this.value = 1;
         this.type = 'p';
+        this.boardArray = board.boardArray;
     }
 
-    public bool isLegal(Vector2 oldPosition, Vector2 newPosition)
+    public bool IsLegal(Coord2 oldPosition, Coord2 newPosition)
     {
-        if (GetLegalMoves(oldPosition).Contains(newPosition))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        };
+        return (GetLegalMoves(oldPosition).Contains(newPosition));
     }
-    public List<Vector2> GetLegalMoves(Vector2 position)
+    public bool IsAttackable(Coord2 oldPosition, Coord2 newPosition)
     {
-        List<Vector2> legalMoves = new List<Vector2>();
-
+        return (GetAttackMoves(oldPosition).Contains(newPosition));
+    }
+    public List<Coord2> GetLegalMoves(Coord2 position)
+    {
+        List<Coord2> legalMoves = new List<Coord2>();
         if (color == 'l')
         {
+            legalMoves.Add(new Coord2(position.x, position.y + 1));
+
             if (position.y == 1)
             {
-                if (Main.gameBoard.board[(int)position.x, (int)position.y + 1] == null)
-                {
-                    legalMoves.Add(new Vector2(position.x, position.y + 1));
-                    if (Main.gameBoard.board[(int)position.x, (int)position.y + 2] == null)
-                    {
-                        legalMoves.Add(new Vector2(position.x, position.y + 2));
-                    }
-                }
-            }
-            else
-            {
-                if (Main.gameBoard.board[(int)position.x, (int)position.y + 1] == null)
-                {
-                    legalMoves.Add(new Vector2(position.x, position.y + 1));
-                }
-            }
-            if (position.x + 1 <= 7 && position.y + 1 <= 7)
-            {
-                if (Main.gameBoard.board[(int)position.x + 1, (int)position.y + 1] != null)
-                {
-                    legalMoves.Add(new Vector2(position.x + 1, position.y + 1));
-                }
-            }
-            if (position.x - 1 >= 0 && position.y + 1 <= 7)
-            {
-                if (Main.gameBoard.board[(int)position.x - 1, (int)position.y + 1] != null)
-                {
-                    legalMoves.Add(new Vector2(position.x - 1, position.y + 1));
-                }
+                legalMoves.Add(new Coord2(position.x, position.y + 2));
             }
         }
         else
         {
+            legalMoves.Add(new Coord2(position.x, position.y - 1));
+
             if (position.y == 6)
             {
-                if (Main.gameBoard.board[(int)position.x, (int)position.y - 1] == null)
-                {
-                    legalMoves.Add(new Vector2(position.x, position.y - 1));
-                    if (Main.gameBoard.board[(int)position.x, (int)position.y - 2] == null)
-                    {
-                        legalMoves.Add(new Vector2(position.x, position.y - 2));
-                    }
-                }
-            }
-            else
-            {
-                if (Main.gameBoard.board[(int)position.x, (int)position.y - 1] == null)
-                {
-                    legalMoves.Add(new Vector2(position.x, position.y - 1));
-                }
+                legalMoves.Add(new Coord2(position.x, position.y - 2));
             }
 
-            if (position.x + 1 <= 7 && position.y - 1 >= 0)
-            {
-                if (Main.gameBoard.board[(int)position.x + 1, (int)position.y - 1] != null)
-                {
-                    legalMoves.Add(new Vector2(position.x + 1, position.y - 1));
-                }
-            }
-            if (position.x - 1 >= 0 && position.y - 1 >= 0)
-                {
-                if (Main.gameBoard.board[(int)position.x - 1, (int)position.y - 1] != null)
-                {
-                    legalMoves.Add(new Vector2(position.x - 1, position.y - 1));
-                }
-            }
         }
-
+        
+        // Remove illegal moves
         legalMoves.RemoveAll(move => (
-               (move.x < 0 || move.x > 7 || move.y < 0 || move.y > 7)                       
-           ||
-               (
-                   (Main.gameBoard.board[(int)move.x, (int)move.y] != null)
-               &&
-                   (Main.gameBoard.board[(int)move.x, (int)move.y].color == this.color)
-                   )
-           ));
+                !move.IsOnBoard() || 
+                (boardArray[move.x, move.y] != null) && (boardArray[move.x, move.y].color == this.color)
+            ));
 
-        return legalMoves; 
+        return legalMoves;
     }
 
-    public bool canPromote(Vector2 position)
+    public List<Coord2> GetAttackMoves(Coord2 position)
     {
+        List<Coord2> attackMoves = new List<Coord2>();
+
         if (color == 'l')
         {
-            if (position.y == 7)
-            {
-                return true;
-            }
+            attackMoves.Add(new Coord2(position.x + 1, position.y + 1));
+            attackMoves.Add(new Coord2(position.x - 1, position.y + 1));
         }
         else
         {
-            if (position.y == 0)
-            {
-                return true;
-            }
+            attackMoves.Add(new Coord2(position.x + 1, position.y - 1));
+            attackMoves.Add(new Coord2(position.x - 1, position.y - 1));
         }
-        return false;
+
+        // Remove illegal moves
+        attackMoves.RemoveAll(move => (
+                !move.IsOnBoard() || 
+                (boardArray[move.x, move.y] != null) && (boardArray[move.x, move.y].color == this.color)
+            ));
+
+        return attackMoves;
     }
-}           
+
+    public bool canPromote(Coord2 position)
+    {
+        return (color == 'l' && position.y == 7) || (color == 'd' && position.y == 0);
+    }
+}

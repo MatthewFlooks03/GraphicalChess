@@ -1,10 +1,14 @@
 using System;
-using UnityEditor;
 using UnityEngine;
 
 public class FEN
 {
-    public static void LoadFEN(string FEN)
+    /// <summary>
+    /// Loads a FEN string into the board array
+    /// </summary>
+    /// <param name="FEN"></param>
+    /// <param name="board"></param>
+    public static void LoadFEN(string FEN, Board board)
     {
         /*
          * Example FEN
@@ -14,17 +18,16 @@ public class FEN
         //Split FEN into sections
         string[] FENSections = FEN.Split(' ');
 
-        if(FENSections.Length != 6)
+        if (FENSections.Length != 6)
         {
             Debug.Log("Invalid FEN");
             return;
         }
 
         //Load Board
-        IPiece[,] board = Main.gameBoard.board;
         int x = 0;
         int y = 7;
-        foreach(char c in FENSections[0])
+        foreach (char c in FENSections[0])
         {
 
             switch (c)
@@ -39,7 +42,7 @@ public class FEN
                     break;
 
                 default:
-                    board[x, y] = CreatePiece(c);
+                    board.boardArray[x, y] = CreatePiece(c);
                     x++;
                     break;
             }
@@ -57,7 +60,8 @@ public class FEN
         {
             int x2 = char.ToUpper(FENSections[3][0]) - 64;
             int y2 = (int)char.GetNumericValue(FENSections[3][1]);
-            Main.gameBoard.SetEnPassant(new Vector2(x2, y2));
+
+            Main.gameBoard.SetEnPassant(new Coord2(x2, y2));
         }
 
         //Set Halfmove Clock
@@ -67,23 +71,27 @@ public class FEN
         Main.game.fullMoveCounter = Int32.Parse(FENSections[5]);
     }
 
-    public static string GenerateFEN()
+    /// <summary>
+    /// Generates FEN string from board array
+    /// </summary>
+    /// <param name="board"></param>
+    /// <returns></returns>
+    public static string GenerateFEN(Board board)
     {
         string[] FENSection = new string[6];
 
         //Board 
-        IPiece[,] board = Main.gameBoard.board;
         for (int y = 7; y >= 0; y--)
         {
             for (int x = 0; x < 8; x++)
             {
                 int skipped = 0;
-                if (board[x, y] != null)
+                if (board.boardArray[x, y] != null)
                 {
                     FENSection[0] += (char)skipped;
                     skipped = 0;
 
-                    FENSection[0] += board[x, y].type;
+                    FENSection[0] += board.boardArray[x, y].type;
                 }
                 else
                 {
@@ -101,19 +109,19 @@ public class FEN
         FENSection[2] = Main.game.castling;
 
         //EnPassant
-        if(Main.gameBoard.GetEnPassant().x == -1)
+        if (board.GetEnPassant().x == -1)
         {
             FENSection[3] = "-";
         }
-        FENSection[3] += char.ToLower((char)(Main.gameBoard.GetEnPassant().x + 64));
-        FENSection[3] += (char)(Main.gameBoard.GetEnPassant().y);
+        FENSection[3] += char.ToLower((char)(board.GetEnPassant().x + 64));
+        FENSection[3] += (char)(board.GetEnPassant().y);
 
         //Halfmove Clock
         FENSection[4] = Main.game.halfMoveClock.ToString();
 
         //Fullmove Number
         FENSection[5] = Main.game.fullMoveCounter.ToString();
-        
+
         return string.Join(" ", FENSection);
     }
 
@@ -128,27 +136,27 @@ public class FEN
         switch (c)
         {
             case 'p':
-                piece = new Pawn(color);
+                piece = new Pawn(Main.gameBoard, color);
                 break;
 
             case 'r':
-                piece = new Rook(color);
+                piece = new Rook(Main.gameBoard, color);
                 break;
 
             case 'n':
-                piece = new Knight(color);
+                piece = new Knight(Main.gameBoard, color);
                 break;
 
             case 'b':
-                piece = new Bishop(color);
+                piece = new Bishop(Main.gameBoard, color);
                 break;
 
             case 'k':
-                piece = new King(color);
+                piece = new King(Main.gameBoard, color);
                 break;
 
             case 'q':
-                piece = new Queen(color);
+                piece = new Queen(Main.gameBoard, color);
                 break;
 
             default:

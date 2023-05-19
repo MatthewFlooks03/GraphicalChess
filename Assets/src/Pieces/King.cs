@@ -1,24 +1,16 @@
-using System.Runtime.CompilerServices;
-using UnityEngine;
-using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class King : IPiece
-{
-    private char _color;
-    public char color {
-        get 
-        {
-            return _color;
-        }
-    }
+{ 
+    public char color { get; }
 
     private char _type;
     public char type
     {
         get
         {
-            if(color == 'l')
+            if (color == 'l')
             {
                 return char.ToUpper(_type);
             }
@@ -30,78 +22,58 @@ public class King : IPiece
         }
     }
 
-    private int _value;
-    public int value
-    {
-        get
-        {
-            return _value;
-        }
-    }
+    public int value { get; }
 
-    private GameObject _gameObject;
-    public GameObject gameObject
-    {
-        get
-        {
-            return _gameObject;
-        }
-        set
-        {
-            _gameObject = value;
-        }
-    }
+    public GameObject gameObject { get; set; }
+
+    private IPiece[,] boardArray;
 
 
-    public King(char color)
+    public King(Board board, char color)
     {
-        this._color = color;
-        this._value = 1;
+        this.color = color;
+        this.value = 1;
         this.type = 'k';
+        this.boardArray = board.boardArray;
     }
 
-    public bool isLegal(Vector2 oldPosition, Vector2 newPosition)
+    public bool IsLegal(Coord2 oldPosition, Coord2 newPosition)
     {
-        if (GetLegalMoves(oldPosition).Contains(newPosition))
-        {
-            return true;
-        } else
-        {
-            return false;
-        }
+        return GetLegalMoves(oldPosition).Contains(newPosition);
+    }
+    public bool IsAttackable(Coord2 oldPosition, Coord2 newPosition)
+    {
+        return (GetAttackMoves(oldPosition).Contains(newPosition));
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="position"></param>
-    /// <returns></returns>
-    public List<Vector2> GetLegalMoves(Vector2 position)
+
+
+    public List<Coord2> GetLegalMoves(Coord2 position)
     {
-        List<Vector2> legalMoves = new List<Vector2>();
-        
-        legalMoves.Add(position + new Vector2(-1,-1));
-        legalMoves.Add(position + new Vector2(-1,0));
-        legalMoves.Add(position + new Vector2(-1,1));
+        List<Coord2> legalMoves = new List<Coord2>();
 
-        legalMoves.Add(position + new Vector2(0,-1));
-        legalMoves.Add(position + new Vector2(0,1));
+        legalMoves.Add(position + new Coord2(-1, -1));
+        legalMoves.Add(position + new Coord2(-1, 0));
+        legalMoves.Add(position + new Coord2(-1, 1));
 
-        legalMoves.Add(position + new Vector2(1,-1));
-        legalMoves.Add(position + new Vector2(1,0));
-        legalMoves.Add(position + new Vector2(1,1));
+        legalMoves.Add(position + new Coord2(0, -1));
+        legalMoves.Add(position + new Coord2(0, 1));
 
+        legalMoves.Add(position + new Coord2(1, -1));
+        legalMoves.Add(position + new Coord2(1, 0));
+        legalMoves.Add(position + new Coord2(1, 1));
 
+        // Remove illegal moves
         legalMoves.RemoveAll(move => (
-                (move.x < 0 || move.x > 7 || move.y < 0 || move.y > 7)
-            || 
-                (
-                    (Main.gameBoard.board[(int)move.x, (int)move.y] != null)
-                && 
-                    (Main.gameBoard.board[(int)move.x, (int)move.y].color == this.color)
-                    )
+                !move.IsOnBoard() || 
+                (boardArray[move.x, move.y] != null) && (boardArray[move.x, move.y].color == this.color)
             ));
 
         return legalMoves;
+    }
+    
+    public List<Coord2> GetAttackMoves(Coord2 position)
+    {
+        return GetLegalMoves(position);
     }
 }

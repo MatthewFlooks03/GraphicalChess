@@ -1,18 +1,9 @@
-using System.Runtime.CompilerServices;
-using UnityEngine;
-using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class EnPassantPiece : IPiece
 {
-    private char _color;
-    public char color
-    {
-        get
-        {
-            return _color;
-        }
-    }
+    public char color { get; }
 
     private char _type;
     public char type
@@ -31,43 +22,35 @@ public class EnPassantPiece : IPiece
         }
     }
 
-    private int _value;
-    public int value
-    {
-        get
-        {
-            return _value;
-        }
-    }
+    public int value { get; }
 
-    private GameObject _gameObject;
-    public GameObject gameObject
-    {
-        get
-        {
-            return _gameObject;
-        }
-        set
-        {
-            _gameObject = value;
-        }
-    }
+    public GameObject gameObject { get; set; }
 
-
-    public EnPassantPiece()
+    private IPiece[,] boardArray;
+    public EnPassantPiece(Board board, char color)
     {
-        this._color = 'd';
-        this._value = 1;
+        this.color = color;
+        this.value = 0;
         this.type = 'e';
+        this.boardArray = board.boardArray;
     }
 
-    public bool isLegal(Vector2 oldPosition, Vector2 newPosition)
+    public bool IsLegal(Coord2 oldPosition, Coord2 newPosition)
+    {
+        return false;
+    }
+    public bool IsAttackable(Coord2 oldPosition, Coord2 newPosition)
     {
         return false;
     }
 
-    public List<Vector2> GetLegalMoves(Vector2 position)
+    public List<Coord2> GetLegalMoves(Coord2 position)
     {
-        return new List<Vector2>(new Vector2[0]);
+        return new List<Coord2>(new Coord2[0]);
+    }
+
+    public List<Coord2> GetAttackMoves(Coord2 position)
+    {
+        return new List<Coord2>(new Coord2[0]);
     }
 }

@@ -1,10 +1,11 @@
 using System.IO;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class Graphics : MonoBehaviour
 {
+    /// <summary>
+    ///  Draws and scales the game board
+    /// </summary>
     public static void InitialiseCamera()
     {
         Camera mainCamera = GameObject.Find("MainCamera").GetComponent<Camera>();
@@ -14,6 +15,9 @@ public class Graphics : MonoBehaviour
         mainCamera.transform.position = new Vector3(Main.boardScale * 3.5f, Main.boardScale * 3.5f, -10);
     }
 
+    /// <summary>
+    /// Draws the gameboard
+    /// </summary>
     public static void DrawBoard()
     {
         GameObject boardPieces = new GameObject("Board");
@@ -26,18 +30,18 @@ public class Graphics : MonoBehaviour
 
                 Color squareColor = isLight ? Main.lightColor : Main.darkColor;
 
-                var position = new Vector2(x, y);
+                var position = new Coord2(x, y);
 
                 DrawSquare(squareColor, position);
             }
         }
     }
 
-    private static void DrawSquare(Color squareColor, Vector2 position)
+    private static void DrawSquare(Color squareColor, Coord2 position)
     {
         //Generate
         GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        quad.transform.position = position * Main.boardScale;
+        quad.transform.position = position.ToVector2() * Main.boardScale;
         quad.transform.localScale = new Vector2(Main.boardScale, Main.boardScale);
         quad.transform.parent = GameObject.Find("Board").transform;
 
@@ -46,34 +50,42 @@ public class Graphics : MonoBehaviour
         quad.name = quadName;
 
         //Color
-        Renderer quadRenderer = quad.GetComponent<Renderer>();  
+        Renderer quadRenderer = quad.GetComponent<Renderer>();
         quadRenderer.material.color = squareColor;
         quadRenderer.sortingOrder = 1;
     }
 
+    /// <summary>
+    /// Draws the pieces in the Board class onto the board
+    /// </summary>
     public static void DrawPieces()
     {
         GameObject boardPieces = new GameObject("Pieces");
 
         int count = 0;
-        for(int x = 0; x < 8; x++)
+        for (int x = 0; x < 8; x++)
         {
-            for(int y = 0; y < 8; y++)
+            for (int y = 0; y < 8; y++)
             {
 
                 count++;
-                if (Main.gameBoard.board[x, y] != null)
+                if (Main.gameBoard.boardArray[x, y] != null)
                 {
-                    Main.gameBoard.board[x,y].gameObject = DrawPiece(new Vector2(x, y));
+                    Main.gameBoard.boardArray[x, y].gameObject = DrawPiece(new Coord2(x, y));
                 }
             }
         }
     }
 
-    public static GameObject DrawPiece(Vector2 position)
+    /// <summary>
+    /// Draws an individual piece onto the board given a position
+    /// </summary>
+    /// <param name="position"></param>
+    /// <returns></returns>
+    public static GameObject DrawPiece(Coord2 position)
     {
-        char type = Main.gameBoard.board[(int)position.x, (int)position.y].type;
-        char color = Main.gameBoard.board[(int)position.x, (int)position.y].color;
+        char type = Main.gameBoard.boardArray[(int)position.x, (int)position.y].type;
+        char color = Main.gameBoard.boardArray[(int)position.x, (int)position.y].color;
 
         //Generate Texture
         string path = "Assets\\sprites\\" + type + color + ".bytes";
@@ -90,7 +102,7 @@ public class Graphics : MonoBehaviour
         spriteRenderer.sprite = sprite;
         spriteRenderer.sortingOrder = 10;
 
-        gameObject.transform.position = position * Main.boardScale;
+        gameObject.transform.position = position.ToVector2() * Main.boardScale;
         gameObject.transform.localScale = new Vector2(2 * Main.boardScale, 2 * Main.boardScale);
         gameObject.transform.parent = GameObject.Find("Pieces").transform;
 
@@ -100,11 +112,16 @@ public class Graphics : MonoBehaviour
         return gameObject;
     }
 
+    /// <summary>
+    /// Deletes given piece from the board
+    /// </summary>
+    /// <param name="piece"></param>
     public static void DeletePiece(IPiece piece)
     {
         GameObject.Destroy(piece.gameObject);
     }
 
+    /*
     public static void ClearBoardDot()
     {
         for(int x = 0; x < 8; x++)
@@ -116,14 +133,14 @@ public class Graphics : MonoBehaviour
         }
     }
 
-    public static void AddBoardDot(Vector2 position)
+    public static void AddBoardDot(Coord2 position)
     {
         GameObject parent = GameObject.Find(position.x.ToString() + position.y.ToString());
 
         //Generate
         GameObject dot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
-        dot.transform.position = position * Main.boardScale;
+        dot.transform.position = position.ToVector2() * Main.boardScale;
         dot.transform.localScale = new Vector2(0.3f * Main.boardScale, 0.3f * Main.boardScale);
         dot.transform.parent = GameObject.Find(position.x.ToString() + position.y.ToString()).transform;
 
@@ -136,14 +153,14 @@ public class Graphics : MonoBehaviour
         dotRenderer.material.color = Main.dotColor;
         dotRenderer.sortingOrder = 5;
 
-        if (Main.gameBoard.board[(int)position.x, (int)position.y] != null)
+        if (Main.gameBoard.boardArray[(int)position.x, (int)position.y] != null)
         {
             dot.transform.localScale *= new Vector2(0.8f/0.3f, 0.8f/0.3f);
 
             //Generate
             GameObject dot2 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
-            dot2.transform.position = position * Main.boardScale;
+            dot2.transform.position = position.ToVector2() * Main.boardScale;
             dot2.transform.localScale = new Vector2(0.7f * Main.boardScale,0.7f * Main.boardScale);
             dot2.transform.parent = dot.transform;
 
@@ -164,7 +181,6 @@ public class Graphics : MonoBehaviour
             dot2Renderer.sortingOrder = 6;
 
         }
-
-
     }
+    */
 }
