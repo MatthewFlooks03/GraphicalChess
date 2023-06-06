@@ -91,7 +91,7 @@ public class Graphics : MonoBehaviour
         char type = Main.gameBoard.boardArray[(int)position.x, (int)position.y].type;
         char color = Main.gameBoard.boardArray[(int)position.x, (int)position.y].color;
 
-        if(type == 'e') { return null; }
+        if(type == 'e' || type == 'E') { return null; }
 
         //Generate Texture
         string path = "Assets\\sprites\\" + type + color + ".bytes";

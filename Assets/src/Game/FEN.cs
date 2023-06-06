@@ -61,7 +61,8 @@ public class FEN
             int x2 = char.ToUpper(FENSections[3][0]) - 64;
             int y2 = (int)char.GetNumericValue(FENSections[3][1]);
 
-            Main.gameBoard.SetEnPassant(new Coord2(x2, y2));
+            char color = y2 == 2 ? 'l' : 'd';
+            Main.gameBoard.SetEnPassant(new Coord2(x2, y2), color);
         }
 
         //Set Halfmove Clock

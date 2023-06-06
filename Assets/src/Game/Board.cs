@@ -215,14 +215,15 @@ public class Board
                 }
 
                 // EnPassant
+                char color = boardArray[newPosition.x, newPosition.y].color;
                 if (newPosition.y - oldPosition.y == 2)
                 {
                     Debug.Log("En Passant : " + (newPosition - new Coord2(0, 1)).ToString());
-                    SetEnPassant(newPosition - new Coord2(0, 1));
+                    SetEnPassant(newPosition - new Coord2(0, 1), color);
                 }
                 if (newPosition.y - oldPosition.y == -2)
                 {
-                    SetEnPassant(newPosition + new Coord2(0, 1));
+                    SetEnPassant(newPosition + new Coord2(0, 1), color);
                 }
 
                 return true;
@@ -305,9 +306,9 @@ public class Board
     /// Creates a new people at the given position to allow EnPassant
     /// </summary>
     /// <param name="position"></param>
-    public void SetEnPassant(Coord2 position)
+    public void SetEnPassant(Coord2 position, char color)
     {
-        boardArray[position.x, position.y] = new EnPassantPiece(this, 'n');
+        boardArray[position.x, position.y] = new EnPassantPiece(this, color);
     }
 
     /// <summary>
@@ -336,7 +337,26 @@ public class Board
     public void Capture(Coord2 position)
     {
         Debug.Log("Capture" + "(" + position.x + "," + position.y + ")");
-        Graphics.DeletePiece(boardArray[position.x, position.y]);
+
+        IPiece piece = boardArray[position.x, position.y];
+        // En Passant
+        if (piece.type == 'e')
+        {
+            Debug.Log(piece.color);
+            int sign;
+            if(piece.color == 'l')
+            {
+                sign = 1;
+            }
+            else
+            {
+                sign = -1;
+            }
+            Graphics.DeletePiece(boardArray[position.x, position.y + sign]);
+            boardArray[position.x, (int)(position.y + sign)] = null;
+        } 
+        Graphics.DeletePiece(piece);
+
     }
 
     /// <summary>
