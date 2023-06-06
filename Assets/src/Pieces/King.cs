@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Android;
 
 public class King : IPiece
 { 
@@ -62,6 +63,28 @@ public class King : IPiece
         legalMoves.Add(position + new Coord2(1, -1));
         legalMoves.Add(position + new Coord2(1, 0));
         legalMoves.Add(position + new Coord2(1, 1));
+
+        // Castling
+        char kS = color == 'l' ? 'k' : 'K';
+        char qS = color == 'l' ? 'q' : 'Q';
+
+        if (Main.game.castling.Contains(qS))
+        {
+            if (boardArray[2, position.y] == null && boardArray[3, position.y] == null)
+            {
+                legalMoves.Add(position + new Coord2(-2, 0));
+            }
+        }
+
+
+        if (Main.game.castling.Contains(kS))
+        {
+            if (boardArray[5, position.y] == null && boardArray[6, position.y] == null)
+            {
+                legalMoves.Add(position + new Coord2(2, 0));
+            }
+
+        }
 
         // Remove illegal moves
         legalMoves.RemoveAll(move => (

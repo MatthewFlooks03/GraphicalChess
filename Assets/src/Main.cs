@@ -21,6 +21,6 @@ public class Main : MonoBehaviour
         FEN.LoadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", gameBoard);
         Graphics.InitialiseCamera();
         Graphics.DrawBoard();
-        Graphics.DrawPieces();
+        Graphics.DrawPieces(true);
     }
 }

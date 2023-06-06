@@ -33,14 +33,7 @@ public class PieceDrag : MonoBehaviour
         Coord2 initial = new Coord2((int)Math.Round(initialPos.x / Main.boardScale), (int)Math.Round(initialPos.y / Main.boardScale));
         Coord2 final = new Coord2((int)Math.Round(finalPos.x / Main.boardScale), (int)Math.Round(finalPos.y / Main.boardScale));
 
-        if (Main.gameBoard.MovePiece(initial, final))
-        {
-            transform.position = new Vector2(final.x * Main.boardScale, final.y * Main.boardScale);
-        }
-        else
-        {
-            Debug.Log("Here");
-            transform.position = initialPos;
-        }
+        Main.gameBoard.MovePiece(initial, final);
+        Graphics.DrawPieces();
     }
 }

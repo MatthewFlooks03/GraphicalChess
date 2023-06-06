@@ -58,16 +58,20 @@ public class Graphics : MonoBehaviour
     /// <summary>
     /// Draws the pieces in the Board class onto the board
     /// </summary>
-    public static void DrawPieces()
+    public static void DrawPieces(bool first = false)
     {
-        GameObject boardPieces = new GameObject("Pieces");
+        if (first) {
+            GameObject boardPieces = new GameObject("Pieces");
+        }
+         foreach (Transform child in GameObject.Find("Pieces").transform) {
+             GameObject.Destroy(child.gameObject);
+         }
 
         int count = 0;
         for (int x = 0; x < 8; x++)
         {
             for (int y = 0; y < 8; y++)
             {
-
                 count++;
                 if (Main.gameBoard.boardArray[x, y] != null)
                 {
@@ -86,6 +90,8 @@ public class Graphics : MonoBehaviour
     {
         char type = Main.gameBoard.boardArray[(int)position.x, (int)position.y].type;
         char color = Main.gameBoard.boardArray[(int)position.x, (int)position.y].color;
+
+        if(type == 'e') { return null; }
 
         //Generate Texture
         string path = "Assets\\sprites\\" + type + color + ".bytes";

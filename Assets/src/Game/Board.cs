@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -40,7 +41,125 @@ public class Board
 
         if (boardArray[oldPosition.x, oldPosition.y].IsLegal(oldPosition, newPosition) && !(boardArray[oldPosition.x, oldPosition.y] is Pawn))
         {
-            Debug.Log("3");
+            // Castling
+            bool castled = false;
+            if (boardArray[oldPosition.x, oldPosition.y] is King && Math.Abs(oldPosition.x - newPosition.x) == 2)
+            {
+                char kColor = boardArray[oldPosition.x, oldPosition.y].color;
+                char rColor = boardArray[oldPosition.x, oldPosition.y].color;
+
+                if(kColor != rColor)
+                {
+                    Debug.Log("Different colors");
+                    return false;
+                }
+
+                char opColor = kColor == 'l' ? 'd' : 'l';
+                HashSet<Coord2> attackedSquares = AttackedSquares(opColor);
+
+                for(int i = 0; i < 3; i++)
+                {
+                    Coord2 square = new Coord2(4 - Math.Sign(oldPosition.x - newPosition.x) * i, oldPosition.y);
+                    Debug.Log(square);
+                    if(attackedSquares.Contains(square))
+                    {
+                        Debug.Log("Castling through check");
+                        return false;
+                    }
+                }
+                
+                if (newPosition.x == 2) // Queen side
+                {
+                    if (kColor == 'l' && Main.game.castling.Contains('Q'))
+                    {
+                        boardArray[2, 0] = boardArray[4,0];
+                        boardArray[3, 0] = boardArray[0,0];
+                        boardArray[4,0] = null;
+                        boardArray[0,0] = null;
+                        castled = true;
+                    }
+                    else if (kColor == 'd' && Main.game.castling.Contains('q'))
+                    {
+                        boardArray[2, 7] = boardArray[4,7];
+                        boardArray[3, 7] = boardArray[0,7];
+                        boardArray[4,7] = null;
+                        boardArray[0,7] = null;
+                        castled = true;
+                    }
+                    else
+                    {
+                        Debug.Log("Castling not allowed");
+                        return false;
+                    }
+                }
+                else if(newPosition.x == 6)
+                {
+                    if (kColor == 'l' && Main.game.castling.Contains('K'))
+                    {
+                        Debug.Log("test");
+                        boardArray[6, 0] = boardArray[4,0];
+                        boardArray[5, 0] = boardArray[7,0];
+                        boardArray[4,0] = null;
+                        boardArray[7,0] = null;
+                        castled = true;
+                    }
+                    else if (kColor == 'd' && Main.game.castling.Contains('k'))
+                    {
+                        boardArray[6, 7] = boardArray[4,7];
+                        boardArray[5, 7] = boardArray[7,7];
+                        boardArray[4,7] = null;
+                        boardArray[7,7] = null;
+                        castled = true;
+                    }
+                    else
+                    {
+                        Debug.Log("Castling not allowed");
+                        return false;
+                    }
+                }
+            }
+
+            // Remove Castling ability
+
+            if (boardArray[oldPosition.x, oldPosition.y] is King)
+            {
+                if (boardArray[oldPosition.x, oldPosition.y].color == 'l')
+                {
+                    Main.game.castling = Main.game.castling.Replace("K", String.Empty);
+                    Main.game.castling = Main.game.castling.Replace("Q", String.Empty);
+                }
+                else
+                {
+                    Main.game.castling = Main.game.castling.Replace("k", String.Empty);
+                    Main.game.castling = Main.game.castling.Replace("q", String.Empty);
+                }
+            }
+            else if (boardArray[oldPosition.x, oldPosition.y] is Rook)
+            {
+                if (boardArray[oldPosition.x, oldPosition.y].color == 'l')
+                {
+                    if (oldPosition.x == 0)
+                    {
+                        Main.game.castling = Main.game.castling.Replace("Q", String.Empty);
+                    }
+                    else if (oldPosition.x == 7)
+                    {
+                       Main.game.castling = Main.game.castling.Replace("k", String.Empty);
+                    }
+                }
+                else
+                {
+                    if (oldPosition.x == 0)
+                    {
+                         Main.game.castling = Main.game.castling.Replace("q", String.Empty);
+                    }
+                    else if (oldPosition.x == 7)
+                    {
+                         Main.game.castling = Main.game.castling.Replace("k", String.Empty);
+                    }
+                }
+            }
+
 
             // Capturing
             if (boardArray[newPosition.x, newPosition.y] != null)
@@ -55,28 +174,28 @@ public class Board
                 RemovePiece(enPassant);
             }
 
-            boardArray[newPosition.x, newPosition.y] = boardArray[oldPosition.x, oldPosition.y];
-            RemovePiece(oldPosition);
+            if (!castled)
+            {
+                boardArray[newPosition.x, newPosition.y] = boardArray[oldPosition.x, oldPosition.y];
+                RemovePiece(oldPosition);
+            }
 
             return true;
 
         }
         else if (boardArray[oldPosition.x, oldPosition.y] is Pawn && (boardArray[oldPosition.x, oldPosition.y].IsLegal(oldPosition, newPosition) || boardArray[oldPosition.x, oldPosition.y].IsAttackable(oldPosition,newPosition)))
         {
-            Debug.Log("Pawn");
 
             bool moved = false;
 
             if (boardArray[newPosition.x, newPosition.y] == null && boardArray[oldPosition.x, oldPosition.y].IsLegal(oldPosition, newPosition))
             {
-                Debug.Log("1");
                 boardArray[newPosition.x, newPosition.y] = boardArray[oldPosition.x, oldPosition.y];
                 RemovePiece(oldPosition);
                 moved = true;
             }
             else if (boardArray[newPosition.x, newPosition.y] != null && boardArray[oldPosition.x, oldPosition.y].IsAttackable(oldPosition, newPosition))
             {
-                Debug.Log("2");
                 Capture(newPosition);
                 boardArray[newPosition.x, newPosition.y] = boardArray[oldPosition.x, oldPosition.y];
                 RemovePiece(oldPosition);
@@ -134,7 +253,12 @@ public class Board
     /// <param name="position"></param>
     public void RemovePiece(Coord2 position)
     {
+        //TODO: make work with graphics, so it all gets done from Board, not by not reseting the dragged piece
         boardArray[position.x, position.y] = null;
+    }
+    public void MovePiece(Coord2 position)
+    {
+        //TODO:
     }
 
     /// <summary>
@@ -176,15 +300,6 @@ public class Board
         Graphics.DeletePiece(pawn);
     }
 
-    /// <summary>
-    /// Castles a given rook and king, if legal
-    /// </summary>
-    /// <param name="king"></param>
-    /// <param name="rook"></param>
-    public void Castle(Coord2 king, Coord2 rook)
-    {
-        //TODO
-    }
 
     /// <summary>
     /// Creates a new people at the given position to allow EnPassant
@@ -220,7 +335,7 @@ public class Board
     /// <param name="position"></param>
     public void Capture(Coord2 position)
     {
-        Debug.Log("Capture");
+        Debug.Log("Capture" + "(" + position.x + "," + position.y + ")");
         Graphics.DeletePiece(boardArray[position.x, position.y]);
     }
 
