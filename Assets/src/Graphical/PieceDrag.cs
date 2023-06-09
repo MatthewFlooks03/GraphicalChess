@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class PieceDrag : MonoBehaviour
 {
-    public bool canMove = true;
     private Vector2 initialPos;
     private Vector2 finalPos;
     private Vector2 difference;
@@ -11,7 +10,9 @@ public class PieceDrag : MonoBehaviour
     private void OnMouseDown()
     {
         initialPos = transform.position;
-        if (canMove)
+        Coord2 boardPlace = new Coord2((int)Math.Round(initialPos.x / Main.boardScale), (int)Math.Round(initialPos.y / Main.boardScale));
+
+        if (Main.gameBoard.boardArray[boardPlace.x, boardPlace.y].canMove == true)
         {
             difference = (Vector2)GameObject.Find("MainCamera").GetComponent<Camera>().ScreenToWorldPoint(Input.mousePosition) - (Vector2)transform.position;
         }
@@ -19,7 +20,8 @@ public class PieceDrag : MonoBehaviour
 
     private void OnMouseDrag()
     {
-        if (canMove)
+        Coord2 boardPlace = new Coord2((int)Math.Round(initialPos.x / Main.boardScale), (int)Math.Round(initialPos.y / Main.boardScale));
+        if (Main.gameBoard.boardArray[boardPlace.x, boardPlace.y].canMove == true)
         {
             transform.position = (Vector2)GameObject.Find("MainCamera").GetComponent<Camera>().ScreenToWorldPoint(Input.mousePosition) - difference;
         }

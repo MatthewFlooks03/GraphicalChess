@@ -15,12 +15,14 @@ public class Main : MonoBehaviour
         gameBoard = new Board();
 
         //Create Game
-        game = new Game();
+        game = new Game(gameBoard);
 
         //Load
         FEN.LoadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", gameBoard);
+        game.boards.Add(gameBoard.GetPosition());
         Graphics.InitialiseCamera();
         Graphics.DrawBoard();
         Graphics.DrawPieces(true);
+        game.LockPieces(game.turn);
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class Knight : IPiece
 {
-      public char color { get; }
+    public char color { get; }
 
     private char _type;
     public char type
@@ -24,9 +24,12 @@ public class Knight : IPiece
 
     public int value { get; }
 
+    public bool canMove { get; set; }
+
     public GameObject gameObject { get; set; }
 
     private IPiece[,] boardArray;
+    private Board board;
 
 
     public Knight(Board board, char color)
@@ -34,6 +37,7 @@ public class Knight : IPiece
         this.color = color;
         this.value = 1;
         this.type = 'n';
+        this.board = board;
         this.boardArray = board.boardArray;
     }
 
@@ -46,28 +50,20 @@ public class Knight : IPiece
         return (GetAttackMoves(oldPosition).Contains(newPosition));
     }
 
-
-
     public List<Coord2> GetLegalMoves(Coord2 position)
     {
-        List<Coord2> legalMoves = new List<Coord2>();
+        List<Coord2> moves = new List<Coord2>();
 
-        legalMoves.Add(position + new Coord2(2, 1));
-        legalMoves.Add(position + new Coord2(2, -1));
-        legalMoves.Add(position + new Coord2(-2, 1));
-        legalMoves.Add(position + new Coord2(-2, -1));
-        legalMoves.Add(position + new Coord2(1, 2));
-        legalMoves.Add(position + new Coord2(1, -2));
-        legalMoves.Add(position + new Coord2(-1, 2));
-        legalMoves.Add(position + new Coord2(-1, -2));
+        moves.Add(position + new Coord2(2, 1));
+        moves.Add(position + new Coord2(2, -1));
+        moves.Add(position + new Coord2(-2, 1));
+        moves.Add(position + new Coord2(-2, -1));
+        moves.Add(position + new Coord2(1, 2));
+        moves.Add(position + new Coord2(1, -2));
+        moves.Add(position + new Coord2(-1, 2));
+        moves.Add(position + new Coord2(-1, -2));
 
-        // Remove illegal moves
-        legalMoves.RemoveAll(move => (
-                !move.IsOnBoard() || 
-                (boardArray[move.x, move.y] != null) && (boardArray[move.x, move.y].color == this.color)
-            ));
-
-        return legalMoves;
+        return board.CleanMoves(moves, position);
     }
 
     public List<Coord2> GetAttackMoves(Coord2 position)

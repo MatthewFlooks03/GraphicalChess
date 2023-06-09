@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
 
 public class Board
 {
@@ -13,42 +11,73 @@ public class Board
         boardArray = new IPiece[8, 8];
     }
 
+    public char[,] GetPosition()
+    {
+        char[,] array = new char[8, 8];
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                if (boardArray[x, y] != null)
+                {
+                    array[x, y] = boardArray[x, y].type;
+                }
+                else
+                {
+                    array[x, y] = ' ';
+                }
+            }
+        }
+
+        return array;
+    }
+
     /// <summary>
     /// Moves a piece from oldPosition to newPosition if the move is legal. Returns true if the move was successful, false otherwise.
     /// </summary>
-    /// <param name="oldPosition"></param>
-    /// <param name="newPosition"></param>
+    /// <param name="oldPos"></param>
+    /// <param name="newPos"></param>
     /// <returns></returns>
-    public bool MovePiece(Coord2 oldPosition, Coord2 newPosition)
+    public bool MovePiece(Coord2 oldPos, Coord2 newPos)
     {
-        if (!(newPosition.IsOnBoard()))
+        Game game = Main.game;
+
+        if (boardArray[oldPos.x, oldPos.y].color != game.turn)
         {
-            Debug.Log("Not on board: " + newPosition.x + ", " + newPosition.y);
+            Debug.Log("Not your turn");
             return false;
         }
 
-        if (oldPosition == newPosition)
+        if (!(newPos.IsOnBoard()))
+        {
+            Debug.Log("Not on board: " + newPos.x + ", " + newPos.y);
+            return false;
+        }
+
+        if (oldPos == newPos)
         {
             Debug.Log("Not Moved");
             return false;
         }
 
-        if (CheckCheck(oldPosition, newPosition))
+        if (CheckCheck(oldPos, newPos))
         {
-            Debug.Log("In check");
+            Debug.Log("In Check");
             return false;
         }
 
-        if (boardArray[oldPosition.x, oldPosition.y].IsLegal(oldPosition, newPosition) && !(boardArray[oldPosition.x, oldPosition.y] is Pawn))
+        if (boardArray[oldPos.x, oldPos.y].IsLegal(oldPos, newPos) && !(boardArray[oldPos.x, oldPos.y] is Pawn))
         {
+            bool resetHMC = false;
+
             // Castling
             bool castled = false;
-            if (boardArray[oldPosition.x, oldPosition.y] is King && Math.Abs(oldPosition.x - newPosition.x) == 2)
+            if (boardArray[oldPos.x, oldPos.y] is King && Math.Abs(oldPos.x - newPos.x) == 2)
             {
-                char kColor = boardArray[oldPosition.x, oldPosition.y].color;
-                char rColor = boardArray[oldPosition.x, oldPosition.y].color;
+                char kColor = boardArray[oldPos.x, oldPos.y].color;
+                char rColor = boardArray[oldPos.x, oldPos.y].color;
 
-                if(kColor != rColor)
+                if (kColor != rColor)
                 {
                     Debug.Log("Different colors");
                     return false;
@@ -57,33 +86,33 @@ public class Board
                 char opColor = kColor == 'l' ? 'd' : 'l';
                 HashSet<Coord2> attackedSquares = AttackedSquares(opColor);
 
-                for(int i = 0; i < 3; i++)
+                for (int i = 0; i < 3; i++)
                 {
-                    Coord2 square = new Coord2(4 - Math.Sign(oldPosition.x - newPosition.x) * i, oldPosition.y);
+                    Coord2 square = new Coord2(4 - Math.Sign(oldPos.x - newPos.x) * i, oldPos.y);
                     Debug.Log(square);
-                    if(attackedSquares.Contains(square))
+                    if (attackedSquares.Contains(square))
                     {
                         Debug.Log("Castling through check");
                         return false;
                     }
                 }
-                
-                if (newPosition.x == 2) // Queen side
+
+                if (newPos.x == 2) // Queen side
                 {
                     if (kColor == 'l' && Main.game.castling.Contains('Q'))
                     {
-                        boardArray[2, 0] = boardArray[4,0];
-                        boardArray[3, 0] = boardArray[0,0];
-                        boardArray[4,0] = null;
-                        boardArray[0,0] = null;
+                        boardArray[2, 0] = boardArray[4, 0];
+                        boardArray[3, 0] = boardArray[0, 0];
+                        boardArray[4, 0] = null;
+                        boardArray[0, 0] = null;
                         castled = true;
                     }
                     else if (kColor == 'd' && Main.game.castling.Contains('q'))
                     {
-                        boardArray[2, 7] = boardArray[4,7];
-                        boardArray[3, 7] = boardArray[0,7];
-                        boardArray[4,7] = null;
-                        boardArray[0,7] = null;
+                        boardArray[2, 7] = boardArray[4, 7];
+                        boardArray[3, 7] = boardArray[0, 7];
+                        boardArray[4, 7] = null;
+                        boardArray[0, 7] = null;
                         castled = true;
                     }
                     else
@@ -92,23 +121,23 @@ public class Board
                         return false;
                     }
                 }
-                else if(newPosition.x == 6)
+                else if (newPos.x == 6)
                 {
                     if (kColor == 'l' && Main.game.castling.Contains('K'))
                     {
                         Debug.Log("test");
-                        boardArray[6, 0] = boardArray[4,0];
-                        boardArray[5, 0] = boardArray[7,0];
-                        boardArray[4,0] = null;
-                        boardArray[7,0] = null;
+                        boardArray[6, 0] = boardArray[4, 0];
+                        boardArray[5, 0] = boardArray[7, 0];
+                        boardArray[4, 0] = null;
+                        boardArray[7, 0] = null;
                         castled = true;
                     }
                     else if (kColor == 'd' && Main.game.castling.Contains('k'))
                     {
-                        boardArray[6, 7] = boardArray[4,7];
-                        boardArray[5, 7] = boardArray[7,7];
-                        boardArray[4,7] = null;
-                        boardArray[7,7] = null;
+                        boardArray[6, 7] = boardArray[4, 7];
+                        boardArray[5, 7] = boardArray[7, 7];
+                        boardArray[4, 7] = null;
+                        boardArray[7, 7] = null;
                         castled = true;
                     }
                     else
@@ -121,9 +150,9 @@ public class Board
 
             // Remove Castling ability
 
-            if (boardArray[oldPosition.x, oldPosition.y] is King)
+            if (boardArray[oldPos.x, oldPos.y] is King)
             {
-                if (boardArray[oldPosition.x, oldPosition.y].color == 'l')
+                if (boardArray[oldPos.x, oldPos.y].color == 'l')
                 {
                     Main.game.castling = Main.game.castling.Replace("K", String.Empty);
                     Main.game.castling = Main.game.castling.Replace("Q", String.Empty);
@@ -133,38 +162,33 @@ public class Board
                     Main.game.castling = Main.game.castling.Replace("k", String.Empty);
                     Main.game.castling = Main.game.castling.Replace("q", String.Empty);
                 }
+                resetHMC = true;
             }
-            else if (boardArray[oldPosition.x, oldPosition.y] is Rook)
+            else if (boardArray[oldPos.x, oldPos.y] is Rook)
             {
-                if (boardArray[oldPosition.x, oldPosition.y].color == 'l')
+                if (boardArray[oldPos.x, oldPos.y].color == 'l')
                 {
-                    if (oldPosition.x == 0)
+                    if (oldPos.x == 0)
                     {
                         Main.game.castling = Main.game.castling.Replace("Q", String.Empty);
                     }
-                    else if (oldPosition.x == 7)
+                    else if (oldPos.x == 7)
                     {
-                       Main.game.castling = Main.game.castling.Replace("k", String.Empty);
+                        Main.game.castling = Main.game.castling.Replace("k", String.Empty);
                     }
                 }
                 else
                 {
-                    if (oldPosition.x == 0)
+                    if (oldPos.x == 0)
                     {
-                         Main.game.castling = Main.game.castling.Replace("q", String.Empty);
+                        Main.game.castling = Main.game.castling.Replace("q", String.Empty);
                     }
-                    else if (oldPosition.x == 7)
+                    else if (oldPos.x == 7)
                     {
-                         Main.game.castling = Main.game.castling.Replace("k", String.Empty);
+                        Main.game.castling = Main.game.castling.Replace("k", String.Empty);
                     }
                 }
-            }
-
-
-            // Capturing
-            if (boardArray[newPosition.x, newPosition.y] != null)
-            {
-                Capture(newPosition);
+                resetHMC = true;
             }
 
             // Remove EnPassant Piece
@@ -173,39 +197,50 @@ public class Board
             {
                 RemovePiece(enPassant);
             }
+            
+            // Capturing
+            if (boardArray[newPos.x, newPos.y] != null)
+            {
+                Debug.Log(boardArray[newPos.x, newPos.y]);
+                Debug.Log("Capture1: " + newPos.x + ", " + newPos.y);
+                Capture(newPos);
+                resetHMC = true;
+            }
 
             if (!castled)
             {
-                boardArray[newPosition.x, newPosition.y] = boardArray[oldPosition.x, oldPosition.y];
-                RemovePiece(oldPosition);
+                boardArray[newPos.x, newPos.y] = boardArray[oldPos.x, oldPos.y];
+                RemovePiece(oldPos);
             }
 
+            game.halfMoveClock = resetHMC ? 0 : game.halfMoveClock + 1;
+            game.NextTurn();
             return true;
 
         }
-        else if (boardArray[oldPosition.x, oldPosition.y] is Pawn && (boardArray[oldPosition.x, oldPosition.y].IsLegal(oldPosition, newPosition) || boardArray[oldPosition.x, oldPosition.y].IsAttackable(oldPosition,newPosition)))
+        else if (boardArray[oldPos.x, oldPos.y] is Pawn && (boardArray[oldPos.x, oldPos.y].IsLegal(oldPos, newPos) || boardArray[oldPos.x, oldPos.y].IsAttackable(oldPos, newPos)))
         {
 
             bool moved = false;
 
-            if (boardArray[newPosition.x, newPosition.y] == null && boardArray[oldPosition.x, oldPosition.y].IsLegal(oldPosition, newPosition))
+            if (boardArray[newPos.x, newPos.y] == null && boardArray[oldPos.x, oldPos.y].IsLegal(oldPos, newPos))
             {
-                boardArray[newPosition.x, newPosition.y] = boardArray[oldPosition.x, oldPosition.y];
-                RemovePiece(oldPosition);
+                boardArray[newPos.x, newPos.y] = boardArray[oldPos.x, oldPos.y];
+                RemovePiece(oldPos);
                 moved = true;
             }
-            else if (boardArray[newPosition.x, newPosition.y] != null && boardArray[oldPosition.x, oldPosition.y].IsAttackable(oldPosition, newPosition))
+            else if (boardArray[newPos.x, newPos.y] != null && boardArray[oldPos.x, oldPos.y].IsAttackable(oldPos, newPos))
             {
-                Capture(newPosition);
-                boardArray[newPosition.x, newPosition.y] = boardArray[oldPosition.x, oldPosition.y];
-                RemovePiece(oldPosition);
+                Capture(newPos);
+                boardArray[newPos.x, newPos.y] = boardArray[oldPos.x, oldPos.y];
+                RemovePiece(oldPos);
                 moved = true;
             }
 
 
             if (moved)
             {
-                PromotePiece(newPosition, 'q');
+                PromotePiece(newPos, 'q');
 
                 // Remove EnPassant Piece
                 Coord2 enPassant = GetEnPassant();
@@ -215,24 +250,26 @@ public class Board
                 }
 
                 // EnPassant
-                char color = boardArray[newPosition.x, newPosition.y].color;
-                if (newPosition.y - oldPosition.y == 2)
+                char color = boardArray[newPos.x, newPos.y].color;
+                if (newPos.y - oldPos.y == 2)
                 {
-                    Debug.Log("En Passant : " + (newPosition - new Coord2(0, 1)).ToString());
-                    SetEnPassant(newPosition - new Coord2(0, 1), color);
+                    Debug.Log("En Passant : " + (newPos - new Coord2(0, 1)).ToString());
+                    SetEnPassant(newPos - new Coord2(0, 1), color);
                 }
-                if (newPosition.y - oldPosition.y == -2)
+                if (newPos.y - oldPos.y == -2)
                 {
-                    SetEnPassant(newPosition + new Coord2(0, 1), color);
+                    SetEnPassant(newPos + new Coord2(0, 1), color);
                 }
 
+                game.halfMoveClock = 0;
+                game.NextTurn();
                 return true;
             }
             return false;
         }
         else
         {
-            Debug.Log("Illegal move: " + newPosition.x + ", " + newPosition.y);
+            Debug.Log("Illegal move: " + newPos.x + ", " + newPos.y);
             return false;
         }
     }
@@ -256,10 +293,6 @@ public class Board
     {
         //TODO: make work with graphics, so it all gets done from Board, not by not reseting the dragged piece
         boardArray[position.x, position.y] = null;
-    }
-    public void MovePiece(Coord2 position)
-    {
-        //TODO:
     }
 
     /// <summary>
@@ -301,7 +334,6 @@ public class Board
         Graphics.DeletePiece(pawn);
     }
 
-
     /// <summary>
     /// Creates a new people at the given position to allow EnPassant
     /// </summary>
@@ -336,15 +368,13 @@ public class Board
     /// <param name="position"></param>
     public void Capture(Coord2 position)
     {
-        Debug.Log("Capture" + "(" + position.x + "," + position.y + ")");
-
         IPiece piece = boardArray[position.x, position.y];
         // En Passant
         if (piece.type == 'e')
         {
             Debug.Log(piece.color);
             int sign;
-            if(piece.color == 'l')
+            if (piece.color == 'l')
             {
                 sign = 1;
             }
@@ -354,7 +384,7 @@ public class Board
             }
             Graphics.DeletePiece(boardArray[position.x, position.y + sign]);
             boardArray[position.x, (int)(position.y + sign)] = null;
-        } 
+        }
         Graphics.DeletePiece(piece);
 
     }
@@ -432,7 +462,6 @@ public class Board
     /// <returns></returns>
     public bool CheckCheck(Coord2 oldPos, Coord2 newPos)
     {
-
         IPiece oldPiece = boardArray[oldPos.x, oldPos.y];
         IPiece newPiece = boardArray[newPos.x, newPos.y];
 
@@ -441,20 +470,85 @@ public class Board
 
         char color = boardArray[newPos.x, newPos.y].color;
 
-        char opColor = (color == 'l') ? 'd' : 'l';
-        string kChar = (color == 'l') ? "K" : "k";
-
-        int kingX = (int)Math.Round(GameObject.Find(kChar).transform.position.x / Main.boardScale);
-        int kingY = (int)Math.Round(GameObject.Find(kChar).transform.position.y / Main.boardScale);
-
-        Coord2 kingLocation = new Coord2(kingX, kingY);
-
-        bool isCheck = AttackedSquares(opColor).Contains(kingLocation);
+        bool isCheck = IsCheck(color);
 
         boardArray[oldPos.x, oldPos.y] = oldPiece;
         boardArray[newPos.x, newPos.y] = newPiece;
 
         return isCheck;
     }
+
+    public HashSet<Move> GetLegalMoves(char color)
+    {
+        HashSet<Move> moveHash = new HashSet<Move>();
+
+        //Get Moves
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                IPiece piece = boardArray[x, y];
+                if (piece != null)
+                {
+                    if (piece.color == color)
+                    {
+                        Coord2 initial = new Coord2(x, y);
+                        List<Coord2> finalMoves = piece.GetLegalMoves(initial);
+                        foreach (Coord2 finalMove in finalMoves)
+                        {
+                            if (!CheckCheck(initial, finalMove))
+                            {
+                                moveHash.Add(new Move(initial, finalMove));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return moveHash;
+    }
+
+    public bool IsCheck(char color)
+    {
+        char opColor = (color == 'l') ? 'd' : 'l';
+        string kChar = (color == 'l') ? "K" : "k";
+        bool isCheck = false;
+
+        int kingX = -1;
+        int kingY = -1;
+
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                if (boardArray[x, y] != null && boardArray[x, y].type.ToString() == kChar)
+                {
+                    kingX = x;
+                    kingY = y;
+                }
+            }
+        }
+
+        if (kingX != -1)
+        {
+            Coord2 kingLocation = new Coord2(kingX, kingY);
+
+            isCheck = AttackedSquares(opColor).Contains(kingLocation);
+        }
+
+        return isCheck;
+    }
+
+    public List<Coord2> CleanMoves(List<Coord2> moveList, Coord2 oldPos)
+    {
+        moveList.RemoveAll(newPos => (
+          !newPos.IsOnBoard() || //Remove moves that are off the board
+          (boardArray[newPos.x, newPos.y] != null && boardArray[newPos.x, newPos.y].color == boardArray[oldPos.x, oldPos.y].color) //Remove moves that capture your own piece
+        ));
+
+        return moveList;
+    }
 }
+
 

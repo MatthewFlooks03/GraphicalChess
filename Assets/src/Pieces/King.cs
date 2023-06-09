@@ -25,16 +25,19 @@ public class King : IPiece
 
     public int value { get; }
 
+    public bool canMove { get; set; }
+
     public GameObject gameObject { get; set; }
 
     private IPiece[,] boardArray;
-
+    private Board board;
 
     public King(Board board, char color)
     {
         this.color = color;
         this.value = 1;
         this.type = 'k';
+        this.board = board;
         this.boardArray = board.boardArray;
     }
 
@@ -51,18 +54,18 @@ public class King : IPiece
 
     public List<Coord2> GetLegalMoves(Coord2 position)
     {
-        List<Coord2> legalMoves = new List<Coord2>();
+        List<Coord2> moves = new List<Coord2>();
 
-        legalMoves.Add(position + new Coord2(-1, -1));
-        legalMoves.Add(position + new Coord2(-1, 0));
-        legalMoves.Add(position + new Coord2(-1, 1));
+        moves.Add(position + new Coord2(-1, -1));
+        moves.Add(position + new Coord2(-1, 0));
+        moves.Add(position + new Coord2(-1, 1));
 
-        legalMoves.Add(position + new Coord2(0, -1));
-        legalMoves.Add(position + new Coord2(0, 1));
+        moves.Add(position + new Coord2(0, -1));
+        moves.Add(position + new Coord2(0, 1));
 
-        legalMoves.Add(position + new Coord2(1, -1));
-        legalMoves.Add(position + new Coord2(1, 0));
-        legalMoves.Add(position + new Coord2(1, 1));
+        moves.Add(position + new Coord2(1, -1));
+        moves.Add(position + new Coord2(1, 0));
+        moves.Add(position + new Coord2(1, 1));
 
         // Castling
         char kS = color == 'l' ? 'k' : 'K';
@@ -72,7 +75,7 @@ public class King : IPiece
         {
             if (boardArray[2, position.y] == null && boardArray[3, position.y] == null)
             {
-                legalMoves.Add(position + new Coord2(-2, 0));
+                moves.Add(position + new Coord2(-2, 0));
             }
         }
 
@@ -81,18 +84,12 @@ public class King : IPiece
         {
             if (boardArray[5, position.y] == null && boardArray[6, position.y] == null)
             {
-                legalMoves.Add(position + new Coord2(2, 0));
+                moves.Add(position + new Coord2(2, 0));
             }
 
         }
 
-        // Remove illegal moves
-        legalMoves.RemoveAll(move => (
-                !move.IsOnBoard() || 
-                (boardArray[move.x, move.y] != null) && (boardArray[move.x, move.y].color == this.color)
-            ));
-
-        return legalMoves;
+        return board.CleanMoves(moves, position);
     }
     
     public List<Coord2> GetAttackMoves(Coord2 position)

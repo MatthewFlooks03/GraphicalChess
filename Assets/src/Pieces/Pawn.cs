@@ -24,9 +24,12 @@ public class Pawn : IPiece
 
     public int value { get; }
 
+    public bool canMove { get; set; }
+
     public GameObject gameObject { get; set; }
 
     private IPiece[,] boardArray;
+    private Board board;
 
 
     public Pawn(Board board, char color)
@@ -34,6 +37,7 @@ public class Pawn : IPiece
         this.color = color;
         this.value = 1;
         this.type = 'p';
+        this.board = board;
         this.boardArray = board.boardArray;
     }
 
@@ -47,34 +51,34 @@ public class Pawn : IPiece
     }
     public List<Coord2> GetLegalMoves(Coord2 position)
     {
-        List<Coord2> legalMoves = new List<Coord2>();
+        List<Coord2> moves = new List<Coord2>();
         if (color == 'l')
         {
-            legalMoves.Add(new Coord2(position.x, position.y + 1));
+            moves.Add(new Coord2(position.x, position.y + 1));
 
             if (position.y == 1)
             {
-                legalMoves.Add(new Coord2(position.x, position.y + 2));
+                moves.Add(new Coord2(position.x, position.y + 2));
             }
         }
         else
         {
-            legalMoves.Add(new Coord2(position.x, position.y - 1));
+            moves.Add(new Coord2(position.x, position.y - 1));
 
             if (position.y == 6)
             {
-                legalMoves.Add(new Coord2(position.x, position.y - 2));
+                moves.Add(new Coord2(position.x, position.y - 2));
             }
 
         }
-        
-        // Remove illegal moves
-        legalMoves.RemoveAll(move => (
-                !move.IsOnBoard() || 
-                (boardArray[move.x, move.y] != null) && (boardArray[move.x, move.y].color == this.color)
-            ));
+
+        List <Coord2> legalMoves = board.CleanMoves(moves, position);
+        legalMoves.RemoveAll(newPos => (
+              boardArray[newPos.x, newPos.y] != null //Remove moves that collide 
+        ));
 
         return legalMoves;
+
     }
 
     public List<Coord2> GetAttackMoves(Coord2 position)
@@ -92,13 +96,7 @@ public class Pawn : IPiece
             attackMoves.Add(new Coord2(position.x - 1, position.y - 1));
         }
 
-        // Remove illegal moves
-        attackMoves.RemoveAll(move => (
-                !move.IsOnBoard() || 
-                (boardArray[move.x, move.y] != null) && (boardArray[move.x, move.y].color == this.color)
-            ));
-
-        return attackMoves;
+        return board.CleanMoves(attackMoves, position);
     }
 
     public bool canPromote(Coord2 position)

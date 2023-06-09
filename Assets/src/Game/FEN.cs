@@ -50,7 +50,8 @@ public class FEN
 
         //Set Turn
         char[] turn = FENSections[1].ToCharArray();
-        Main.game.turn = turn[0];
+        char gameTurn = turn[0] == 'w' ? 'l' : 'd';
+        Main.game.turn = gameTurn;
 
         //Set Castling
         Main.game.castling = FENSections[2];

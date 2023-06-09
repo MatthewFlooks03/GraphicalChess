@@ -6,6 +6,7 @@ public class EnPassantPiece : IPiece
     public char color { get; }
 
     private char _type;
+
     public char type
     {
         get
@@ -23,6 +24,8 @@ public class EnPassantPiece : IPiece
     }
 
     public int value { get; }
+
+    public bool canMove { get; set; }
 
     public GameObject gameObject { get; set; }
 

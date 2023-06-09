@@ -24,15 +24,19 @@ public class Bishop : IPiece
 
     public int value { get; }
 
+    public bool canMove { get; set; }
+
     public GameObject gameObject { get; set; }
 
     private IPiece[,] boardArray;
+    private Board board;
 
     public Bishop(Board board, char color)
     {
         this.color = color;
         this.value = 1;
         this.type = 'b';
+        this.board = board;
         this.boardArray = board.boardArray;
     }
 
@@ -51,8 +55,6 @@ public class Bishop : IPiece
         return (GetAttackMoves(oldPosition).Contains(newPosition));
     }
 
-
-
     /// <summary>
     /// Gets legal moves of the bishop at the given position.
     /// </summary>
@@ -60,7 +62,7 @@ public class Bishop : IPiece
     /// <returns></returns>
     public List<Coord2> GetLegalMoves(Coord2 position)
     {
-        List<Coord2> legalMoves = new List<Coord2>();
+        List<Coord2> moves = new List<Coord2>();
 
 
         int y = position.y;
@@ -70,7 +72,7 @@ public class Bishop : IPiece
         {
             y++;
             x++;
-            legalMoves.Add(new Coord2(x, y));
+            moves.Add(new Coord2(x, y));
         }
         while (y <= 7 && x <= 7 && boardArray[x, y] == null);
 
@@ -81,7 +83,7 @@ public class Bishop : IPiece
         {
             y--;
             x++;
-            legalMoves.Add(new Coord2(x, y));
+            moves.Add(new Coord2(x, y));
         }
         while (y >= 0 && x <= 7 && boardArray[x, y] == null);
 
@@ -92,7 +94,7 @@ public class Bishop : IPiece
         {
             y++;
             x--;
-            legalMoves.Add(new Coord2(x, y));
+            moves.Add(new Coord2(x, y));
         }
         while (y <= 7 && x >= 0 && boardArray[x, y] == null);
 
@@ -103,17 +105,11 @@ public class Bishop : IPiece
         {
             y--;
             x--;
-            legalMoves.Add(new Coord2(x, y));
+            moves.Add(new Coord2(x, y));
         }
         while (y >= 0 && x >= 0 && boardArray[x, y] == null);
 
-        // Remove illegal moves
-        legalMoves.RemoveAll(move => (
-                !move.IsOnBoard() || 
-                (boardArray[move.x, move.y] != null) && (boardArray[move.x, move.y].color == this.color)
-            ));
-
-        return legalMoves;
+        return board.CleanMoves(moves, position);
     }
 
     public List<Coord2> GetAttackMoves(Coord2 position)

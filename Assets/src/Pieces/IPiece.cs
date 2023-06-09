@@ -7,6 +7,7 @@ public interface IPiece
     int value { get; }
     char type { get; }
     GameObject gameObject { get; set; }
+    bool canMove { get; set;}
 
     /// <summary>
     /// Checks a given move is legal.
