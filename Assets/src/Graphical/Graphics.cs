@@ -38,6 +38,7 @@ public class Graphics : MonoBehaviour
         }
     }
 
+
     private static void DrawSquare(Color squareColor, Coord2 position)
     {
         //Generate
